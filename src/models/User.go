@@ -2,8 +2,12 @@ package models
 
 import (
 	"errors"
+	"fmt"
+	"social-network/src/security"
 	"strings"
 	"time"
+
+	"github.com/badoux/checkmail"
 )
 
 type User struct {
@@ -25,6 +29,12 @@ func (user *User) validate(step string) error {
 	if user.Email == "" {
 		return errors.New("e-mail required")
 	}
+
+	if error := checkmail.ValidateFormat(user.Email); error != nil {
+		fmt.Println(user.Email)
+		return errors.New("e-mail invalid")
+	}
+
 	if step == "create" && user.Password == "" {
 		return errors.New("password required")
 	}
@@ -32,10 +42,18 @@ func (user *User) validate(step string) error {
 	return nil
 }
 
-func (user *User) format() {
+func (user *User) format(step string) error {
 	user.Name = strings.TrimSpace(user.Name)
 	user.Nick = strings.TrimSpace(user.Nick)
 	user.Email = strings.TrimSpace(user.Email)
+	if step == "create" {
+		passwordHash, error := security.Hash(user.Password)
+		if error != nil {
+			return error
+		}
+		user.Password = string(passwordHash)
+	}
+	return nil
 }
 
 func (user *User) Prepare(step string) error {
@@ -43,7 +61,9 @@ func (user *User) Prepare(step string) error {
 		return error
 	}
 
-	user.format()
-	return nil
+	if error := user.format(step); error != nil {
+		return error
+	}
 
+	return nil
 }

@@ -106,5 +106,34 @@ func (repositoryUser users) UpdateUser(ID uint64, user models.User) error {
 	}
 
 	return nil
+}
 
+func (repositoryUser users) DeleteUser(ID uint64) error {
+	statement, error := repositoryUser.db.Prepare("delete from users where id =?")
+	if error != nil {
+		return error
+	}
+	defer statement.Close()
+
+	if _, error := statement.Exec(ID); error != nil {
+		return error
+	}
+
+	return nil
+}
+
+func (repositoryUser users) GetUserForEmail(email string) (models.User, error) {
+	line, error := repositoryUser.db.Query("select id, password from users where email = ?", email)
+	if error != nil {
+		return models.User{}, error
+	}
+	defer line.Close()
+
+	var user models.User
+	if line.Next() {
+		if error := line.Scan(&user.ID, &user.Password); error != nil {
+			return models.User{}, error
+		}
+	}
+	return user, nil
 }
