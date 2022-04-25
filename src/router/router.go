@@ -1,8 +1,12 @@
 package router
 
-import "github.com/gorilla/mux"
+import (
+	"social-network/src/router/routes"
+
+	"github.com/gorilla/mux"
+)
 
 func Generate() *mux.Router {
-	return mux.NewRouter()
-
+	r := mux.NewRouter()
+	return routes.Configure(r)
 }
