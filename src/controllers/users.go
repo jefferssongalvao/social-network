@@ -2,39 +2,41 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"social-network/src/database"
 	"social-network/src/models"
 	"social-network/src/repositories"
+	"social-network/src/responses"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	request, error := ioutil.ReadAll(r.Body)
 	if error != nil {
-		log.Fatal(error)
+		responses.Error(w, http.StatusUnprocessableEntity, error)
+		return
 	}
 
 	var user models.User
 	if error := json.Unmarshal(request, &user); error != nil {
-		log.Fatal(error)
+		responses.Error(w, http.StatusBadRequest, error)
+		return
 	}
 
 	db, error := database.Connect()
 	if error != nil {
-		log.Fatal(error)
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
 	}
+	defer db.Close()
 
 	repository := repositories.NewRepositoryUsers(db)
-	userID, error := repository.Create(user)
+	user.ID, error = repository.Create(user)
 	if error != nil {
-		log.Fatal(error)
+		responses.Error(w, http.StatusInternalServerError, error)
 	}
 
-	w.Write([]byte(fmt.Sprintf("ID inserido: %d", userID)))
-
+	responses.JSON(w, http.StatusCreated, user)
 }
 
 func ListUsers(w http.ResponseWriter, r *http.Request) {
