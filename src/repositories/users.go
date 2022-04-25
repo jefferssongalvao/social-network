@@ -91,3 +91,20 @@ func (repositoryUser users) GetUser(ID uint64) (models.User, error) {
 	}
 	return user, nil
 }
+
+func (repositoryUser users) UpdateUser(ID uint64, user models.User) error {
+	statement, error := repositoryUser.db.Prepare(
+		"update users set name = ?, nick = ?, email = ? where id = ?",
+	)
+	if error != nil {
+		return error
+	}
+	defer statement.Close()
+
+	if _, error = statement.Exec(user.Name, user.Nick, user.Email, ID); error != nil {
+		return error
+	}
+
+	return nil
+
+}
