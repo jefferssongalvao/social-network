@@ -16,16 +16,16 @@ type User struct {
 }
 
 func (user *User) validate(step string) error {
-	if user.Name != "" {
+	if user.Name == "" {
 		return errors.New("name required")
 	}
-	if user.Nick != "" {
+	if user.Nick == "" {
 		return errors.New("nick required")
 	}
-	if user.Email != "" {
+	if user.Email == "" {
 		return errors.New("e-mail required")
 	}
-	if step == "create" && user.Password != "" {
+	if step == "create" && user.Password == "" {
 		return errors.New("password required")
 	}
 
