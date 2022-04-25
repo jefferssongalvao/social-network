@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"social-network/src/security"
 	"strings"
 	"time"
@@ -31,7 +30,6 @@ func (user *User) validate(step string) error {
 	}
 
 	if error := checkmail.ValidateFormat(user.Email); error != nil {
-		fmt.Println(user.Email)
 		return errors.New("e-mail invalid")
 	}
 

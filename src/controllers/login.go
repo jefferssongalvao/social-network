@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"social-network/src/authentication"
 	"social-network/src/database"
 	"social-network/src/models"
 	"social-network/src/repositories"
@@ -43,5 +44,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("Logged"))
+	token, error := authentication.GenerateToken(userDatabase.ID)
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+
+	w.Write([]byte(token))
 }

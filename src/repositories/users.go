@@ -36,7 +36,6 @@ func (repositoryUser users) Create(user models.User) (uint64, error) {
 
 func (repositoryUser users) SearchUsers(filter string) ([]models.User, error) {
 	filter = fmt.Sprintf("%%%s%%", filter)
-	fmt.Println(filter)
 
 	lines, error := repositoryUser.db.Query(
 		"select id, name, nick, email, created_at from users where name LIKE ? or nick LIKE ?",

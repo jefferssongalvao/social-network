@@ -10,13 +10,13 @@ var routesUsers = []Route{
 		URI:                    "/users",
 		Method:                 http.MethodPost,
 		Function:               controllers.CreateUser,
-		RequiresAuthentication: false,
+		RequiresAuthentication: true,
 	},
 	{
 		URI:                    "/users",
 		Method:                 http.MethodGet,
 		Function:               controllers.ListUsers,
-		RequiresAuthentication: false,
+		RequiresAuthentication: true,
 	},
 	{
 		URI:                    "/users/{id}",
