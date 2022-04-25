@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"social-network/src/config"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,8 +36,6 @@ func ValidateToken(r *http.Request) error {
 	}
 
 	return errors.New("invalid token")
-
-	return nil
 }
 
 func getToken(r *http.Request) string {
@@ -50,7 +49,24 @@ func getToken(r *http.Request) string {
 
 func getSecretKey(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, fmt.Errorf("Unexpected subscription method! %v", token.Header["alg"])
+		return nil, fmt.Errorf("unexpected subscription method %v", token.Header["alg"])
 	}
 	return config.SecretKey, nil
+}
+
+func GetUserID(r *http.Request) (uint64, error) {
+	tokenStr := getToken(r)
+	token, error := jwt.Parse(tokenStr, getSecretKey)
+	if error != nil {
+		return 0, error
+	}
+
+	if permissions, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		userID, error := strconv.ParseUint(fmt.Sprintf("%.0f", permissions["userId"]), 10, 64)
+		if error != nil {
+			return 0, error
+		}
+		return userID, nil
+	}
+	return 0, errors.New("invalid token")
 }

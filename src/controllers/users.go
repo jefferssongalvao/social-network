@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
+	"social-network/src/authentication"
 	"social-network/src/database"
 	"social-network/src/models"
 	"social-network/src/repositories"
@@ -101,6 +103,17 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userIdToken, error := authentication.GetUserID(r)
+	if error != nil {
+		responses.Error(w, http.StatusUnauthorized, error)
+		return
+	}
+
+	if userIdToken != ID {
+		responses.Error(w, http.StatusForbidden, errors.New("update forbidden for this user"))
+		return
+	}
+
 	request, error := ioutil.ReadAll(r.Body)
 	if error != nil {
 		responses.Error(w, http.StatusUnprocessableEntity, error)
@@ -139,6 +152,17 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ID, error := strconv.ParseUint(params["id"], 10, 64)
 	if error != nil {
 		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
+
+	userIdToken, error := authentication.GetUserID(r)
+	if error != nil {
+		responses.Error(w, http.StatusUnauthorized, error)
+		return
+	}
+
+	if userIdToken != ID {
+		responses.Error(w, http.StatusForbidden, errors.New("delete forbidden for this user"))
 		return
 	}
 
