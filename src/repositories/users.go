@@ -136,3 +136,17 @@ func (repositoryUser users) GetUserForEmail(email string) (models.User, error) {
 	}
 	return user, nil
 }
+
+func (repositoryUser users) FollowUser(userId, followerId uint64) error {
+	statement, error := repositoryUser.db.Prepare("insert ignore into followers(user_id, follower_id) values(?, ?)")
+	if error != nil {
+		return error
+	}
+	defer statement.Close()
+
+	if _, error := statement.Exec(userId, followerId); error != nil {
+		return error
+	}
+
+	return nil
+}
