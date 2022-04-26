@@ -166,7 +166,7 @@ func (repositoryUser users) UnfollowUser(userId, followerId uint64) error {
 
 func (repositoryUser users) GetFollowers(userId uint64) ([]models.User, error) {
 	lines, error := repositoryUser.db.Query(`
-		select id, name, nick, email from followers f
+		select u.id, u.name, u.nick, u.email from followers f
 			inner join users u on u.id = f.follower_id
 		where user_id = ?`,
 		userId,
