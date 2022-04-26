@@ -36,7 +36,7 @@ CREATE TABLE posts(
 
     author_id int not null,
     FOREIGN KEY (author_id)
-    REFERENCES usuarios(id)
+    REFERENCES users(id)
     ON DELETE CASCADE,
 
     likes int default 0,
