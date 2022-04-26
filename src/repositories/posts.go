@@ -155,3 +155,38 @@ func (repositoryPosts posts) GetPostsPerUser(userId uint64) ([]models.Post, erro
 	}
 	return posts, nil
 }
+
+func (repositoryPosts posts) LikePost(postId uint64) error {
+	statement, error := repositoryPosts.db.Prepare("update posts set likes = likes + 1 where id = ?")
+	if error != nil {
+		return error
+	}
+	defer statement.Close()
+
+	if _, error := statement.Exec(postId); error != nil {
+		return error
+	}
+
+	return nil
+}
+
+func (repositoryPosts posts) UnlikePost(postId uint64) error {
+	statement, error := repositoryPosts.db.Prepare(`
+		update posts set likes = 
+		case
+			when likes > 0 then likes - 1 
+			else 0
+		end
+		where id = ?
+	`)
+	if error != nil {
+		return error
+	}
+	defer statement.Close()
+
+	if _, error := statement.Exec(postId); error != nil {
+		return error
+	}
+
+	return nil
+}
