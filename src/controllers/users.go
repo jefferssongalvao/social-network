@@ -10,6 +10,7 @@ import (
 	"social-network/src/models"
 	"social-network/src/repositories"
 	"social-network/src/responses"
+	"social-network/src/security"
 	"strconv"
 	"strings"
 
@@ -298,4 +299,54 @@ func GetFollowing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	responses.JSON(w, http.StatusOK, users)
+}
+
+func UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	userId, error := authentication.GetUserID(r)
+	if error != nil {
+		responses.Error(w, http.StatusUnauthorized, error)
+		return
+	}
+
+	request, error := ioutil.ReadAll(r.Body)
+	if error != nil {
+		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
+
+	var passaword models.Password
+	if error := json.Unmarshal([]byte(request), &passaword); error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+
+	if error := passaword.Prepare(); error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+
+	db, error := database.Connect()
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewRepositoryUsers(db)
+	actualPasswordHash, error := repository.GetPassword(userId)
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+
+	if error := security.CheckPassword(actualPasswordHash, passaword.ActualPassword); error != nil {
+		responses.Error(w, http.StatusUnauthorized, errors.New("actual password is invalid"))
+		return
+	}
+
+	if error := repository.UpdatePassword(userId, passaword.NewPassword); error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+	responses.JSON(w, http.StatusNoContent, nil)
 }

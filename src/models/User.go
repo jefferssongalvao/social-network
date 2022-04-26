@@ -19,24 +19,23 @@ type User struct {
 }
 
 func (user *User) validate(step string) error {
-	if user.Name == "" {
+	if step != "update-password" && user.Name == "" {
 		return errors.New("name required")
 	}
-	if user.Nick == "" {
+	if step != "update-password" && user.Nick == "" {
 		return errors.New("nick required")
 	}
-	if user.Email == "" {
+	if step != "update-password" && user.Email == "" {
 		return errors.New("e-mail required")
 	}
-
-	if error := checkmail.ValidateFormat(user.Email); error != nil {
-		return errors.New("e-mail invalid")
+	if step != "update-password" {
+		if error := checkmail.ValidateFormat(user.Email); error != nil {
+			return errors.New("e-mail invalid")
+		}
 	}
-
-	if step == "create" && user.Password == "" {
+	if (step == "create" || step == "update-password") && user.Password == "" {
 		return errors.New("password required")
 	}
-
 	return nil
 }
 
@@ -44,7 +43,7 @@ func (user *User) format(step string) error {
 	user.Name = strings.TrimSpace(user.Name)
 	user.Nick = strings.TrimSpace(user.Nick)
 	user.Email = strings.TrimSpace(user.Email)
-	if step == "create" {
+	if step == "create" || step == "update-password" {
 		passwordHash, error := security.Hash(user.Password)
 		if error != nil {
 			return error
