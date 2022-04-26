@@ -63,7 +63,6 @@ func (repositoryUser users) SearchUsers(filter string) ([]models.User, error) {
 	}
 
 	return users, nil
-
 }
 
 func (repositoryUser users) GetUser(ID uint64) (models.User, error) {
@@ -163,4 +162,59 @@ func (repositoryUser users) UnfollowUser(userId, followerId uint64) error {
 	}
 
 	return nil
+}
+
+func (repositoryUser users) GetFollowers(userId uint64) ([]models.User, error) {
+	lines, error := repositoryUser.db.Query(`
+		select id, name, nick, email from followers f
+			inner join users u on u.id = f.follower_id
+		where user_id = ?`,
+		userId,
+	)
+	if error != nil {
+		return nil, error
+	}
+
+	var followers []models.User
+	for lines.Next() {
+		var follower models.User
+		if error := lines.Scan(
+			&follower.ID,
+			&follower.Name,
+			&follower.Nick,
+			&follower.Email,
+		); error != nil {
+			return nil, error
+		}
+		followers = append(followers, follower)
+	}
+	return followers, nil
+}
+
+func (repositoryUser users) GetFollowing(userId uint64) ([]models.User, error) {
+	lines, error := repositoryUser.db.Query(`
+			select u.id, u.name, u.nick, u.email from followers f
+				inner join users u on u.id = f.user_id
+			where f.follower_id = ?
+		`,
+		userId,
+	)
+	if error != nil {
+		return nil, error
+	}
+
+	var users []models.User
+	for lines.Next() {
+		var user models.User
+		if error := lines.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Nick,
+			&user.Email,
+		); error != nil {
+			return nil, error
+		}
+		users = append(users, user)
+	}
+	return users, nil
 }
